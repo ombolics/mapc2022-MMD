@@ -1,6 +1,9 @@
 from typing import Tuple
+from agent.action.surveyAction import SurveyAction
 
 from data.coreData import Coordinate, MapValue, MapValueEnum
+from data.coreData.enums import AgentActionEnum
+from data.coreData.surveyIncident import SurveyIncident
 from data.map import DynamicMap, MapUpdateData
 
 class MapServer:
@@ -52,7 +55,16 @@ class MapServer:
         adjustedUpdateData = self.adjustUpdateData(agentId, updateData)
         self.getMap(agentId).addRange(simulationStep, adjustedUpdateData)
 
-    def checkAgentIdentifications(self) -> Tuple[dict[str, Coordinate], bool]:
+    def my_checkAgentIdentifications(self) -> Tuple[dict[str, Coordinate], bool]:
+
+        maps_to_merge=[]
+        for agentId, dynamicPercept in self.currentDynamicPerceptWrappers.items():
+            for t in dynamicPercept:
+                if t.value == MapValueEnum.AGENT: #and agent.CanPerformAction(AgentActions.SURVEY):
+                    pass
+
+
+    def checkAgentIdentifications(self, agents) -> Tuple[dict[str, Coordinate], bool]:
         """
         Checks the `DynamicMaps` for possible `Agent` identifications for
         merging or calculating map dimensions.\n
@@ -99,6 +111,34 @@ class MapServer:
                 
                 currentAgentMap = self.getMap(agentId)
                 
+                #try to remove candidates
+                if len(canditates) > 1:
+                    
+                    current_agent = next((x for x in agents if x.id == agentId), None)
+                    
+                    
+                    if current_agent.mapcRole.canPerformAction(AgentActionEnum.SURVEY):
+                        print(f'[START] {agentId}: len(candidates): {len(canditates)}')
+                        
+                        for can in canditates:
+                            current_agent.set_otf_action(SurveyAction(can[1]))
+                            result = current_agent.execute_otf_action()
+
+                            current_agent.processActionResult(result)
+                            current_agent.setDynamicPerceptAfterAction(result)
+                            
+                            print(f'[SURVEY] found actual agent:')
+                            for e in current_agent.dynamicPerceptWrapper.events:
+                                if isinstance(e, SurveyIncident) and e.name == can[0]:
+                                    print(e.name)
+
+                            if any([(lambda x: isinstance(x, SurveyIncident) and x.name == can[0])(e) for e in current_agent.dynamicPerceptWrapper.events]):
+                                canditates = [can]
+                                break
+                        
+                        print(f'[END] {agentId}: len(candidates): {len(canditates)}')
+                        print()
+
                 # Identifying must be 100% sure, if more than one canditates are possible, then abort
                 if len(canditates) == 1:
                     canditateId = canditates[0][0]
@@ -123,6 +163,7 @@ class MapServer:
                         self.calculateMapGridSize(currentAgentMap.getAgentCoordinate(agentId), currentAgentMap.getAgentCoordinate(canditateId),
                                 canditateRelCoord, max(dynamicPercept.keys(), key = lambda coord: coord.x).x)
                         mapBoundaryReached = True
+                
 
         return (coordOffsetForMergedAgents, mapBoundaryReached)
 

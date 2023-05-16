@@ -1,4 +1,8 @@
 from data.coreData import MapValueEnum, Coordinate, MapValue, Task, TaskRequirement, MapcRole, Norm, NormRegulation, RegulationType
+from data.coreData.enums import IncidentType
+from data.coreData.hitIncident import HitIncident
+from data.coreData.incident import Incident
+from data.coreData.surveyIncident import SurveyIncident
 
 class DynamicPerceptWrapper:
     """
@@ -19,6 +23,7 @@ class DynamicPerceptWrapper:
     dispensers: dict[Coordinate, MapValue]
     tasks: list[Task]
     norms: list[Norm]
+    events: list[Incident]
 
 
     def __init__(self, perception: dict, roles: dict[str, MapcRole], simulationStep: int) -> None:
@@ -35,6 +40,10 @@ class DynamicPerceptWrapper:
         self.things = dict()
         self.markers = dict()
         self.dispensers = dict()
+        
+        ##TODO: events
+        self.events = self.parseEvents(perception['events'])
+        # print(f'perception[events]={perception["events"]}')
 
         self.tasks = [Task(task["name"], task["deadline"], task["reward"],
                 [TaskRequirement(req["x"], req["y"], req["details"], req["type"]) for req in task["requirements"]])
@@ -56,6 +65,25 @@ class DynamicPerceptWrapper:
                 self.markers[coordinate] = MapValue(entity, thing["details"], simulationStep)
         
         self.fillWithEmptyThings(roles[self.role].vision, simulationStep)
+
+
+    def parseEvents(self, data:list[dict]) -> list[Incident]:
+        events = [Incident]
+        for d in data:
+            if d['type'] == IncidentType.HIT:
+                events.append(HitIncident(IncidentType.HIT, d['origin']))
+                
+            else:
+                incident = SurveyIncident(IncidentType.SURVEY, d['target'])
+                
+                if d['target'] == 'agent':
+                    incident.name = d['name']
+                    incident.role = d['role']
+                    incident.energy = d['energy']
+                else:
+                    incident.distance = d['distance']
+                events.append(incident)  
+        return events
 
     def fillWithEmptyThings(self, vision: int, simulationStep: int) -> None:
         """

@@ -17,6 +17,8 @@ import urllib.parse
 from types import TracebackType
 from typing import Any, Dict, List, Union, Generator, Type, Optional, Tuple, TypeVar, Coroutine, Callable
 
+from data.coreData.coordinate import Coordinate
+
 __version__ = "0.1.0"  # Remember to update setup.py
 
 DirectionLiteral = str
@@ -279,6 +281,12 @@ class AgentProtocol(asyncio.Protocol):
 
     async def submit(self, task: str) -> AgentProtocol:
         return await self.send_action("submit", [task])
+    
+    async def survey(self, target: str | Coordinate) -> AgentProtocol:
+        if target is str:
+            return await self.send_action("survey", [target])
+        
+        return await self.send_action("survey", [target.x, target.y])
     
     async def adopt(self, role: str) -> AgentProtocol:
         return await self.send_action("adopt", [role])
@@ -639,6 +647,13 @@ class Agent:
         """
         with self._not_shut_down():
             coro = self.protocol.submit(task)
+            future = asyncio.run_coroutine_threadsafe(coro, self.protocol.loop)
+        future.result()
+        return self
+    
+    def survey(self, target: str | Coordinate) -> Agent:
+        with self._not_shut_down():
+            coro = self.protocol.survey(target)
             future = asyncio.run_coroutine_threadsafe(coro, self.protocol.loop)
         future.result()
         return self

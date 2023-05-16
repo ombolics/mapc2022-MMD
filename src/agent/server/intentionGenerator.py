@@ -1,7 +1,10 @@
 from typing import Tuple
 from random import choice
+from agent.action.surveyAction import SurveyAction
 
 from data.coreData import Task, AgentIntentionRole, Coordinate, NormRegulation, RegulationType, MapcRole
+from data.coreData.enums import AgentActionEnum, MapValueEnum
+from data.coreData.surveyIncident import SurveyIncident
 from data.map import DynamicMap
 from data.server import IntentionDataServer, SimulationDataServer, MapServer
 
@@ -309,7 +312,32 @@ class IntentionGenerator():
         so they can update the `Coordinates` in ther intentions.
         """
 
-        offsets, mapBoundaryReached = self.mapServer.checkAgentIdentifications()
+        # maps_to_merge=[]
+        # for agentId, dynamicPercept in self.mapServer.currentDynamicPerceptWrappers.items():
+        #     current_agent = next((x for x in agents if x.id == agentId), None)
+
+        #     # Select other agents from the same team that are in the vision
+        #     unknownOtherAgents = [coord for coord, mapValue in dynamicPercept.items() 
+        #                     if mapValue.value == MapValueEnum.AGENT
+        #                         and coord != Coordinate.origo()
+        #                         and mapValue.details == dynamicPercept[Coordinate.origo()].details]
+
+        #     for agent_coord in unknownOtherAgents:
+        #         #It's ensured that agents ae active
+                
+        #         if current_agent.mapcRole.canPerformAction(AgentActionEnum.SURVEY):
+        #             current_agent.set_otf_action(SurveyAction(agent_coord))
+        #             result = current_agent.execute_otf_action()
+
+        #             current_agent.processActionResult(result)
+        #             current_agent.setDynamicPerceptAfterAction(result)
+
+        #             for e in current_agent.dynamicPerceptWrapper.events:
+                        
+        #                 print(current_agent.id, ' sees ', vars(e), '\n')
+                    
+        #asd
+        offsets, mapBoundaryReached = self.mapServer.checkAgentIdentifications(agents)
 
         # Send the Coordinate shift values for the Agents who are involved in the merge
         # (the ones whose map were merged into an another)

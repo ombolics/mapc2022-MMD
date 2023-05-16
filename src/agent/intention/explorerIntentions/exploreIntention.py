@@ -1,3 +1,4 @@
+from agent.intention.explorerIntentions.surveyIntention import SurveyIntention
 from data.coreData import MapValueEnum, Coordinate, MapcRole
 
 from data.intention import Observation
@@ -18,6 +19,7 @@ class ExploreIntention(MainAgentIntention):
     currentTravelIntention: TravelIntention | None
     detachBlocksIntention: DetachBlocksIntention | None
     adoptRoleIntention: AdoptRoleIntention | None
+    surveyIntention: SurveyIntention | None
     relocation: bool                                        # Contains if the Agent not found a close unknown Coordinate so
                                                             # it will move to a random location
 
@@ -25,6 +27,7 @@ class ExploreIntention(MainAgentIntention):
         self.currentTravelIntention = None
         self.detachBlocksIntention = None
         self.adoptRoleIntention = None
+        self.surveyIntention = None
 
         self.relocation = False
     

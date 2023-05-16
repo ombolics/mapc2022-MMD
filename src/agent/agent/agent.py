@@ -1,4 +1,5 @@
 from typing import Type
+from agent.action.surveyAction import SurveyAction
 import mapc2022 as mapc2022
 
 from data.coreData import Coordinate, AgentActionEnum, AttachedEntity, MapcRole, MapValueEnum, AgentIntentionRole
@@ -30,6 +31,8 @@ class Agent:
     intentionHandler: IntentionHandler
     action: AgentAction | None
 
+    otf_action : AgentAction | None
+
     def __init__(self, id : str, mapServer: MapServer, simDataServer: SimulationDataServer) -> None:
         self.id = id
         self.mapServer = mapServer
@@ -44,6 +47,29 @@ class Agent:
         
         self.intentionHandler = IntentionHandler(self.id)
         self.action = None
+    
+    def set_otf_action(self, action : AgentAction):
+        if not isinstance(action,SurveyAction):
+            raise ValueError('Currently only SurveyAction is supported')
+        
+        if not self.mapcRole.canPerformAction(AgentActionEnum.SURVEY):
+            raise ValueError("Agent can't perform this action with the current role.")
+        
+        self.otf_action = action
+
+    def execute_otf_action(self) -> str:
+        return self.otf_action.perform(self.mapcAgent)
+
+    def set_dynamic_percept_after_otf_action(self, actionResult: str) -> None:
+
+        agentPrevEnergy = self.dynamicPerceptWrapper.energy
+        deactivatedPrev = self.dynamicPerceptWrapper.deactivated
+        self.setDynamicPercept()
+        
+        # Calculate energy regain if it is not deactivated
+        if not deactivatedPrev and agentPrevEnergy != self.simDataServer.agentMaxEnergy:
+            self.simDataServer.setAgentEnergyRecharge(self.dynamicPerceptWrapper.energy - agentPrevEnergy)
+        
     
     def connect(self, host: str, port: int, password: str) -> None:
         """

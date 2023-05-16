@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Tuple
 
+
 class MapValueEnum(Enum):
     """
     Represents an entity type on the map.
@@ -13,6 +14,7 @@ class MapValueEnum(Enum):
     BLOCK = 4
     MARKER = 5
     UNKNOWN = 6
+
 
 class Direction(Enum):
     """
@@ -35,7 +37,7 @@ class Direction(Enum):
                 return "s"
             case 3:
                 return "w"
-    
+
     def opposite(self) -> 'Direction':
         """
         Returns the opposite direction
@@ -50,27 +52,28 @@ class Direction(Enum):
                 return Direction.NORTH
             case 3:
                 return Direction.EAST
-    
+
     def isOppositeDirection(self, other: 'Direction') -> bool:
         """
         Returns if the other `Direction` is the opposite of the current one.
         """
 
         return (self.value + other.value) % 2 == 0
-    
+
     def isSameDirection(self, other: 'Direction') -> bool:
         """
         Returns if the other `Direction` is the same as the current one.
         """
 
         return self.value == other.value
-    
+
     def getAdjacentDirections(self) -> Tuple['Direction']:
         """
         Returns the not opposite and the not same `Directions`.
         """
 
         return (Direction((self.value + 1) % 4), Direction((self.value - 1) % 4))
+
 
 class RotateDirection(Enum):
     """
@@ -86,6 +89,7 @@ class RotateDirection(Enum):
                 return "cw"
             case 1:
                 return "ccw"
+
 
 class AgentActionEnum(Enum):
     """
@@ -132,6 +136,7 @@ class AgentActionEnum(Enum):
             case 11:
                 return "SURVEY"
 
+
 class AgentIntentionRole(Enum):
     """
     Represents an agent logical role, eg, what it's currently doing.
@@ -153,6 +158,7 @@ class AgentIntentionRole(Enum):
             case 3:
                 return "SINGLEBLOCKPROVIDER"
 
+
 class RegulationType(Enum):
     """
     Represents a type of a norm regulation.
@@ -167,3 +173,35 @@ class RegulationType(Enum):
                 return "BLOCK"
             case 1:
                 return "ROLE"
+
+
+class IncidentType(Enum):
+
+    HIT = 0
+    SURVEY = 1
+
+    def __str__(self) -> str:
+        match self.value:
+            case 0:
+                return "HIT"
+            case 1:
+                return "SURVEY"
+
+
+class SurveyTarget(Enum):
+
+    GOAL = 0
+    ROLE = 1
+    AGENT = 2
+    DISPENSER = 3
+
+    def __str__(self) -> str:
+        match self.value:
+            case 0:
+                return "GOAL"
+            case 1:
+                return "ROLE"
+            case 2:
+                return "AGENT"
+            case 3:
+                return "DISPENSER"
